@@ -5,7 +5,12 @@ import { generateColorScheme } from '~/utils/colorScheme'
 
 const colorMode = useColorMode()
 
-// --- Network settings ---
+// --- QR type & content ---
+type QrType = 'wifi' | 'url'
+const qrType = ref<QrType>('wifi')
+const urlContent = ref('')
+
+// --- Network settings (Wi‑Fi) ---
 const ssid = ref('')
 const encryption = ref('WPA')
 const password = ref('')
@@ -36,9 +41,12 @@ const blobRef = ref<Blob | null>(null)
 const errorMessage = ref('')
 
 const canGenerate = computed(() => {
-  if (!ssid.value.trim()) return false
-  if (encryption.value !== 'nopass' && !password.value) return false
-  return true
+  if (qrType.value === 'wifi') {
+    if (!ssid.value.trim()) return false
+    if (encryption.value !== 'nopass' && !password.value) return false
+    return true
+  }
+  return urlContent.value.trim().length > 0
 })
 
 async function generate() {
@@ -47,14 +55,9 @@ async function generate() {
   errorMessage.value = ''
 
   try {
-    const response = await $fetch<Blob>('/api/generate', {
-      method: 'POST',
-      body: {
-        ssid: ssid.value.trim(),
-        encryption: encryption.value,
-        password: encryption.value !== 'nopass' ? password.value : undefined,
-        isHidden: isHidden.value,
-        style: {
+    const body: Record<string, unknown> = {
+      type: qrType.value,
+      style: {
           colorBackground: colorBackground.value,
           colorDotsStart: colorDotsStart.value,
           colorDotsEnd: colorDotsEnd.value,
@@ -67,7 +70,19 @@ async function generate() {
           qrMargin: qrMargin.value,
           showInfoInImage: showInfoInImage.value,
         },
-      },
+    }
+    if (qrType.value === 'wifi') {
+      body.ssid = ssid.value.trim()
+      body.encryption = encryption.value
+      body.password = encryption.value !== 'nopass' ? password.value : undefined
+      body.isHidden = isHidden.value
+    } else {
+      body.url = urlContent.value.trim()
+    }
+
+    const response = await $fetch<Blob>('/api/generate', {
+      method: 'POST',
+      body,
       responseType: 'blob',
     })
 
@@ -85,11 +100,23 @@ async function generate() {
   }
 }
 
+function downloadFilename(): string {
+  if (qrType.value === 'wifi') {
+    return `${ssid.value.trim().replace(/[^a-zA-Z0-9_-]/g, '_')}.png`
+  }
+  try {
+    const u = new URL(urlContent.value.trim())
+    return `${u.hostname.replace(/[^a-zA-Z0-9_.-]/g, '_')}.png`
+  } catch {
+    return 'url.png'
+  }
+}
+
 function downloadImage() {
   if (!blobRef.value || !previewUrl.value) return
   const a = document.createElement('a')
   a.href = previewUrl.value
-  a.download = `${ssid.value.trim().replace(/[^a-zA-Z0-9_-]/g, '_')}.png`
+  a.download = downloadFilename()
   a.click()
 }
 
@@ -106,8 +133,25 @@ function randomizeColors() {
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
 watch(
-  [colorBackground, colorDotsStart, colorDotsEnd, colorCorners, colorText,
-   dotsType, cornersSquareType, cornersDotType, imageSize, qrMargin, showInfoInImage],
+  [
+    qrType,
+    ssid,
+    encryption,
+    password,
+    isHidden,
+    urlContent,
+    colorBackground,
+    colorDotsStart,
+    colorDotsEnd,
+    colorCorners,
+    colorText,
+    dotsType,
+    cornersSquareType,
+    cornersDotType,
+    imageSize,
+    qrMargin,
+    showInfoInImage,
+  ],
   () => {
     if (!previewUrl.value) return
     if (debounceTimer) clearTimeout(debounceTimer)
@@ -132,12 +176,26 @@ watch(
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 
-        <!-- COLUMN 1: Network -->
+        <!-- COLUMN 1: Type + content form -->
         <div class="p-5 lg:p-6 space-y-4 border-b md:border-b-0 md:border-r border-border flex flex-col">
-          <h2 class="text-lg font-semibold tracking-tight">Netzwerk</h2>
-
           <div class="space-y-2">
-            <Label for="ssid">SSID (Netzwerkname)</Label>
+            <Label for="qrType">QR-Typ</Label>
+            <Select v-model="qrType">
+              <SelectTrigger id="qrType">
+                <SelectValue placeholder="Typ wählen" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="wifi">Wi‑Fi</SelectItem>
+                <SelectItem value="url">URL</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <!-- Wi‑Fi form -->
+          <template v-if="qrType === 'wifi'">
+            <h2 class="text-lg font-semibold tracking-tight">Netzwerk</h2>
+            <div class="space-y-2">
+              <Label for="ssid">SSID (Netzwerkname)</Label>
             <Input
               id="ssid"
               v-model="ssid"
@@ -187,6 +245,21 @@ watch(
               Verstecktes Netzwerk
             </Label>
           </div>
+          </template>
+
+          <!-- URL form -->
+          <template v-else>
+            <h2 class="text-lg font-semibold tracking-tight">URL</h2>
+            <div class="space-y-2">
+              <Label for="url">Adresse</Label>
+              <Input
+                id="url"
+                v-model="urlContent"
+                type="url"
+                placeholder="https://beispiel.de"
+              />
+            </div>
+          </template>
 
           <!-- Push button to bottom -->
           <div class="flex-1" />
@@ -214,7 +287,7 @@ watch(
           <template v-if="previewUrl">
             <img
               :src="previewUrl"
-              alt="Wi-Fi QR Code"
+              alt="QR-Code Vorschau"
               class="w-full max-w-xs rounded-lg shadow-md"
             />
             <Button variant="outline" @click="downloadImage">
@@ -226,7 +299,7 @@ watch(
             <div class="flex flex-col items-center gap-3 text-muted-foreground">
               <QrCode class="h-16 w-16 opacity-20" />
               <p class="text-sm text-center">
-                Fülle die Netzwerkdaten aus und klicke<br />
+                {{ qrType === 'wifi' ? 'Fülle die Netzwerkdaten aus' : 'Gib eine URL ein' }} und klicke<br />
                 auf <strong>„QR-Code generieren"</strong>.
               </p>
             </div>

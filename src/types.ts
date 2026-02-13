@@ -8,6 +8,9 @@ export interface WifiConfig {
   outputFile: string;
 }
 
+/** QR code content type; left form swaps by type. */
+export type QrType = 'wifi' | 'url';
+
 /** Visual style overrides sent from the frontend. All fields optional — missing values fall back to defaults in config.ts. */
 export interface StyleConfig {
   // Colors

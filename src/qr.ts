@@ -2,13 +2,13 @@
 (globalThis as any).self = globalThis;
 
 import { resolveStyle, type ResolvedStyle } from './config';
-import { buildWifiString } from './wifi';
-import type { WifiConfig, StyleConfig } from './types';
+import type { StyleConfig } from './types';
 
 /**
  * Generates a styled QR code PNG buffer with transparent background.
+ * @param data - Raw string to encode (e.g. WIFI:... or URL).
  */
-export const generateQrBuffer = async (cfg: WifiConfig, style?: StyleConfig): Promise<Buffer> => {
+export const generateQrBuffer = async (data: string, style?: StyleConfig): Promise<Buffer> => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { default: QRCodeStyling } = await import('qr-code-styling-node') as any;
   const nodeCanvas = await import('canvas');
@@ -18,7 +18,7 @@ export const generateQrBuffer = async (cfg: WifiConfig, style?: StyleConfig): Pr
     nodeCanvas,
     width: s.qrSize,
     height: s.qrSize,
-    data: buildWifiString(cfg),
+    data,
     margin: s.qrMargin,
 
     dotsOptions: {
