@@ -2,25 +2,26 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { Eye, EyeOff, Download, QrCode, Loader2, Shuffle, Sun, Moon } from 'lucide-vue-next'
 import { generateColorScheme } from '~/utils/colorScheme'
+import type { QrType } from '../../../src/types'
+import {
+  QR_TYPE_CHOICES,
+  QR_TYPE_LABELS,
+  buildQrPayload,
+  type WifiPayload,
+  type UrlPayload,
+  type TextPayload,
+  type VcardPayload,
+  type EmailPayload,
+  type SmsPayload,
+  type TelPayload,
+  type GeoPayload,
+} from '../../../src/buildFromPayload'
 
 const colorMode = useColorMode()
 const route = useRoute()
 
-// --- Valid QR types (alphabetical; first = default) and route sync ---
-type QrType = 'wifi' | 'url' | 'text' | 'vcard' | 'email' | 'sms' | 'tel' | 'geo'
-const QR_TYPES_ORDERED: QrType[] = ['email', 'geo', 'sms', 'tel', 'text', 'url', 'vcard', 'wifi']
+const QR_TYPES_ORDERED = QR_TYPE_CHOICES.map((c) => c.value)
 const DEFAULT_TYPE: QrType = QR_TYPES_ORDERED[0]
-
-const TYPE_LABELS: Record<QrType, string> = {
-  email: 'Email',
-  geo: 'Location',
-  sms: 'SMS',
-  tel: 'Phone',
-  text: 'Text',
-  url: 'URL',
-  vcard: 'Contact (vCard)',
-  wifi: 'Wi‑Fi',
-}
 
 function typeFromRoute(): QrType {
   const t = route.params.type
@@ -98,7 +99,51 @@ const showInfoInImage = ref(true)
 const generating = ref(false)
 const previewUrl = ref<string | null>(null)
 const blobRef = ref<Blob | null>(null)
+const generatedFilename = ref('')
 const errorMessage = ref('')
+
+function getCurrentPayload():
+  | WifiPayload
+  | UrlPayload
+  | TextPayload
+  | VcardPayload
+  | EmailPayload
+  | SmsPayload
+  | TelPayload
+  | GeoPayload {
+  const t = qrType.value
+  if (t === 'wifi') {
+    return {
+      ssid: ssid.value.trim(),
+      password: encryption.value !== 'nopass' ? password.value : undefined,
+      encryption: encryption.value as WifiPayload['encryption'],
+      isHidden: isHidden.value,
+    }
+  }
+  if (t === 'url') return { url: urlContent.value.trim() }
+  if (t === 'text') return { text: textContent.value.trim() }
+  if (t === 'vcard') {
+    return {
+      name: vcardName.value.trim() || 'Contact',
+      phone: vcardPhone.value.trim() || undefined,
+      email: vcardEmail.value.trim() || undefined,
+      org: vcardOrg.value.trim() || undefined,
+    }
+  }
+  if (t === 'email') {
+    return {
+      email: emailAddress.value.trim(),
+      subject: emailSubject.value.trim() || undefined,
+      body: emailBody.value.trim() || undefined,
+    }
+  }
+  if (t === 'sms') return { phone: smsPhone.value.trim(), body: smsBody.value.trim() || undefined }
+  if (t === 'tel') return { phone: telPhone.value.trim() }
+  return {
+    lat: Number(geoLat.value) || 0,
+    lng: Number(geoLng.value) || 0,
+  }
+}
 
 const emptyStateHint = computed(() => {
   const hints: Record<QrType, string> = {
@@ -193,6 +238,8 @@ async function generate() {
 
     blobRef.value = response
     previewUrl.value = URL.createObjectURL(response)
+    const payload = getCurrentPayload()
+    generatedFilename.value = buildQrPayload(qrType.value, payload).filename
   } catch (err: any) {
     errorMessage.value = err?.data?.statusMessage || err?.message || 'Generation failed'
   } finally {
@@ -201,33 +248,7 @@ async function generate() {
 }
 
 function downloadFilename(): string {
-  if (qrType.value === 'wifi') {
-    return `${ssid.value.trim().replace(/[^a-zA-Z0-9_-]/g, '_')}.png`
-  }
-  if (qrType.value === 'url') {
-    try {
-      const u = new URL(urlContent.value.trim())
-      return `${u.hostname.replace(/[^a-zA-Z0-9_.-]/g, '_')}.png`
-    } catch {
-      return 'url.png'
-    }
-  }
-  if (qrType.value === 'text') {
-    const first = textContent.value.trim().split(/\r?\n/)[0]?.slice(0, 30) || 'text'
-    return `${first.replace(/[^a-zA-Z0-9_-]/g, '_')}.png`
-  }
-  if (qrType.value === 'vcard') {
-    const n = vcardName.value.trim() || 'vcard'
-    return `${n.replace(/[^a-zA-Z0-9_-]/g, '_')}.png`
-  }
-  if (qrType.value === 'email') {
-    const e = emailAddress.value.trim().replace(/[^a-zA-Z0-9_.@+-]/g, '_') || 'email'
-    return `${e}.png`
-  }
-  if (qrType.value === 'sms') return `sms_${smsPhone.value.replace(/\D/g, '').slice(-8) || 'sms'}.png`
-  if (qrType.value === 'tel') return `tel_${telPhone.value.replace(/\D/g, '').slice(-8) || 'tel'}.png`
-  if (qrType.value === 'geo') return `geo_${geoLat.value}_${geoLng.value}.png`.replace(/[^a-zA-Z0-9_.-]/g, '_')
-  return 'qr.png'
+  return `${generatedFilename.value || 'qr'}.png`
 }
 
 function downloadImage() {
@@ -318,7 +339,7 @@ watch(
                   :key="t"
                   :value="t"
                 >
-                  {{ TYPE_LABELS[t] }}
+                  {{ QR_TYPE_LABELS[t] }}
                 </SelectItem>
               </SelectContent>
             </Select>

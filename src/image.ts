@@ -1,8 +1,6 @@
-import * as fs from 'fs';
 import { resolveStyle, type ResolvedStyle } from './config';
 import { generateQrBuffer } from './qr';
-import { buildWifiString } from './wifi';
-import type { WifiConfig, StyleConfig } from './types';
+import type { StyleConfig } from './types';
 
 const MAX_LABEL_LEN = 45;
 
@@ -52,20 +50,4 @@ export const composeImageBuffer = async (
   }
 
   return canvas.toBuffer('image/png');
-};
-
-/**
- * Composes the final image and writes it to disk (used by CLI).
- */
-export const composeImage = async (cfg: WifiConfig): Promise<void> => {
-  console.log(`Generating styled QR Code for SSID: "${cfg.ssid}"...`);
-  const data = buildWifiString(cfg);
-  const resolved = resolveStyle(undefined);
-  const labelLines = [
-    resolved.textTemplateSsid.replace('{ssid}', cfg.ssid),
-    ...(cfg.password ? [resolved.textTemplatePassword.replace('{password}', cfg.password)] : []),
-  ];
-  const buffer = await composeImageBuffer(data, undefined, labelLines);
-  fs.writeFileSync(cfg.outputFile, buffer);
-  console.log(`Success! Saved to ./${cfg.outputFile}`);
 };
