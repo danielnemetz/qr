@@ -1,7 +1,7 @@
 {
   "name": "wifi-qr",
   "version": "1.0.0",
-  "description": "",
+  "description": "Generate styled QR codes (CLI: Wi-Fi; Web: URL, text, vCard, email, SMS, phone, location) with live preview.",
   "main": "dist/main.js",
   "scripts": {
     "start": "tsx src/main.ts",

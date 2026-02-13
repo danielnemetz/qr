@@ -1,6 +1,6 @@
 # wifi-qr
 
-Generate styled Wi-Fi QR codes as PNG images. Scan the code with any phone camera to connect instantly -- no manual password typing.
+Generate styled QR codes as PNG images. **CLI:** Wi‑Fi only (interactive prompt). **Web:** Wi‑Fi, URL, text, vCard, email, SMS, phone, location — with live preview and customizable style. Scan with any phone camera to connect or open content.
 
 ![Example QR Code](ExampleSSID.png)
 
@@ -55,9 +55,20 @@ All visual settings live in [`src/config.ts`](src/config.ts):
 | `textTemplatePassword` | `Password: {password}` | Password text template |
 | `outputDir` | `.` | Output directory for generated images |
 
+## Web Interface
+
+Browser-Oberfläche zum Erstellen gestalteter QR-Codes (Wi‑Fi, URL, Text, Kontakt, E-Mail, SMS, Telefon, Standort) mit Live-Vorschau und anpassbarem Stil.
+
+- **Starten:** `pnpm dev:web` (im Projektroot) bzw. `cd web && pnpm dev`
+- **Beschreibung:** Siehe [web/README.md](web/README.md) für Routing, QR-Typen, Oberfläche und API.
+
 ## Tech Stack
 
+**CLI** (this repo):
+
 - **TypeScript** + **tsx** (direct execution, no build step needed)
-- **qr-code-styling-node** -- styled QR code generation
-- **canvas** -- server-side image compositing
-- **@inquirer/prompts** -- interactive CLI prompts
+- **qr-code-styling-node** — styled QR code generation
+- **canvas** — server-side image compositing
+- **@inquirer/prompts** — interactive CLI prompts
+
+**Web:** siehe [web/README.md](web/README.md).
