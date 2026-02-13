@@ -1,6 +1,6 @@
 # wifi-qr
 
-Generate styled QR codes as PNG images. **CLI:** Wi‑Fi only (interactive prompt). **Web:** Wi‑Fi, URL, text, vCard, email, SMS, phone, location — with live preview and customizable style. Scan with any phone camera to connect or open content.
+Generate styled QR codes as PNG images. **CLI** and **Web** both support the same QR types: Wi‑Fi, URL, text, vCard, email, SMS, phone, location. CLI uses an interactive prompt; web offers a browser UI with live preview and customizable style. Scan with any phone camera to connect or open content. Type-specific logic (data, labels, filename) is shared via `src/buildFromPayload.ts`.
 
 ![Example QR Code](ExampleSSID.png)
 
@@ -18,11 +18,10 @@ pnpm start
 
 The script walks you through an interactive prompt:
 
-1. **SSID** -- your network name
-2. **Encryption** -- choose between WPA/WPA2/WPA3, WEP, or open (arrow keys)
-3. **Password** -- masked input by default
+1. **QR type** — choose one of: Email, Location (geo), SMS, Phone, Text, URL, Contact (vCard), Wi‑Fi
+2. **Type-specific fields** — e.g. for Wi‑Fi: SSID, encryption (WPA/WEP/none), password (masked by default); for URL: address; for vCard: name, phone, email, etc.
 
-The output image is saved as `<SSID>.png` in the project root.
+The output image is saved in the project root (or `outputDir` in config) with a type-specific filename (e.g. `<SSID>.png` for Wi‑Fi, `url.png` or hostname for URL).
 
 ### Flags
 
@@ -50,17 +49,21 @@ All visual settings live in [`src/config.ts`](src/config.ts):
 | `dotsType` | `rounded` | Dot style: `dots`, `rounded`, `extra-rounded`, `classy`, `classy-rounded`, `square` |
 | `cornersSquareType` | `extra-rounded` | Outer corner style: `square`, `extra-rounded`, `dot` |
 | `cornersDotType` | `dot` | Inner corner style: `square`, `dot` |
-| `showInfoInImage` | `true` | Show SSID and password as text below the QR code |
-| `textTemplateSsid` | `Network: {ssid}` | SSID text template |
-| `textTemplatePassword` | `Password: {password}` | Password text template |
+| `showInfoInImage` | `true` | Show info text below the QR code (e.g. SSID/password for Wi‑Fi, URL or phone for other types) |
+| `textTemplateSsid` | `Network: {ssid}` | Wi‑Fi SSID label template |
+| `textTemplatePassword` | `Password: {password}` | Wi‑Fi password label template |
 | `outputDir` | `.` | Output directory for generated images |
 
 ## Web Interface
 
-Browser UI for generating styled QR codes (Wi‑Fi, URL, text, contact, email, SMS, phone, location) with live preview and customizable style.
+Browser UI for the same QR types as the CLI, with live preview and customizable style.
 
 - **Run:** `pnpm dev:web` (from project root) or `cd web && pnpm dev`
 - **Docs:** See [web/README.md](web/README.md) for routing, QR types, UI, and API.
+
+## Shared logic
+
+The same QR types and generation rules are used by CLI and web. In `src/buildFromPayload.ts`: `buildQrPayload(type, payload)` returns the QR data string, label lines for the image, and a safe filename. The API and CLI both call this; the web UI also uses it for the download filename and for type labels/order.
 
 ## Tech Stack
 

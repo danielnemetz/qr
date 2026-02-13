@@ -61,7 +61,7 @@ After the first generation, changes to content or style trigger automatic re-gen
 - **Type-specific fields** (e.g. `ssid` / `encryption` / `password` / `isHidden` for `wifi`, `url` for `url`, `text` for `text`, etc.)
 - Optional **`style`** — overrides for colors, `dotsType`, `cornersSquareType`, `cornersDotType`, `imageSize`, `qrMargin`, `showInfoInImage`
 
-Response: PNG buffer (`Content-Type: image/png`).
+Response: PNG buffer (`Content-Type: image/png`). The `Content-Disposition` header includes the suggested filename (from the same logic as the CLI).
 
 ## Security
 
@@ -76,4 +76,4 @@ Response: PNG buffer (`Content-Type: image/png`).
 - **Nitro** (API routes, e.g. `/api/generate`)
 - **Tailwind CSS v4**, **shadcn-vue** (Reka UI), **lucide-vue-next**
 - **@nuxtjs/color-mode** for dark mode
-- Shared logic and types from root `src/` (e.g. `composeImageBuffer`, `buildWifiString`, `payloads.ts`)
+- Shared logic and types from root `src/`: `buildQrPayload` and payload types in `buildFromPayload.ts` (data, label lines, filename); `composeImageBuffer` in `image.ts`; `payloads.ts`, `wifi.ts`, `config.ts`. CLI and web use the same type list and labels (`QR_TYPE_CHOICES`, `QR_TYPE_LABELS`).
