@@ -1,0 +1,27 @@
+{
+  "name": "wifi-qr",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/main.js",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "build": "tsc",
+    "build:run": "tsc && node dist/main.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^25.2.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^8.2.0",
+    "canvas": "^3.2.1",
+    "qr-code-styling-node": "^1.5.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["canvas", "esbuild"]
+  }
+}
