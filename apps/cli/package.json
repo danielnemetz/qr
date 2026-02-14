@@ -1,0 +1,21 @@
+{
+  "name": "@wifi-qr/cli",
+  "version": "1.0.0",
+  "private": true,
+  "bin": {
+    "wifi-qr": "./dist/main.js"
+  },
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "^8.2.0",
+    "@wifi-qr/core": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0",
+    "@types/node": "^25.2.3",
+    "typescript": "^5.9.3"
+  }
+}
