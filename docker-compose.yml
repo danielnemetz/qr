@@ -1,0 +1,36 @@
+services:
+  qr-web:
+    image: ghcr.io/danielnemetz/qr:latest
+    build: .
+    container_name: qr-web
+    restart: unless-stopped
+    networks:
+      - traefik-network
+    labels:
+      - 'traefik.enable=true'
+
+      # HTTP → HTTPS redirect
+      - 'traefik.http.routers.qr-web.entrypoints=web'
+      - 'traefik.http.routers.qr-web.rule=Host(`qr.nmetz.de`)'
+      - 'traefik.http.routers.qr-web.middlewares=qr-web-redirect'
+      - 'traefik.http.middlewares.qr-web-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.middlewares.qr-web-redirect.redirectscheme.permanent=true'
+
+      # HTTPS
+      - 'traefik.http.routers.qr-web-secure.entrypoints=websecure'
+      - 'traefik.http.routers.qr-web-secure.rule=Host(`qr.nmetz.de`)'
+      - 'traefik.http.routers.qr-web-secure.tls=true'
+      - 'traefik.http.routers.qr-web-secure.tls.certresolver=cloudflare'
+
+      # Service port
+      - 'traefik.http.services.qr-web.loadbalancer.server.port=3000'
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+networks:
+  traefik-network:
+    external: true

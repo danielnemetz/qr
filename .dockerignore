@@ -1,0 +1,25 @@
+node_modules/
+.git/
+.gitignore
+
+# Build artifacts
+dist/
+apps/web/.nuxt/
+apps/web/.output/
+apps/web/node_modules/
+packages/core/dist/
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Images & backups
+*.png
+*.bak
