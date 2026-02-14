@@ -1,6 +1,7 @@
 node_modules/
 dist/
 *.png
+*.bak
 !ExampleSSID.png
 
 # Nuxt

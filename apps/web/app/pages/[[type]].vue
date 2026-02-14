@@ -569,7 +569,7 @@ watch(
                 v-model="geoLat"
                 type="text"
                 inputmode="decimal"
-                placeholder="52.520008"
+                placeholder="53.551100"
               />
             </div>
             <div class="space-y-2">
@@ -579,9 +579,19 @@ watch(
                 v-model="geoLng"
                 type="text"
                 inputmode="decimal"
-                placeholder="13.404954"
+                placeholder="9.993700"
               />
             </div>
+            <MapPickerDialog
+              :lat="geoLat"
+              :lng="geoLng"
+              @confirm="
+                (lat: string, lng: string) => {
+                  geoLat = lat;
+                  geoLng = lng;
+                }
+              "
+            />
           </template>
 
           <div class="flex-1" />

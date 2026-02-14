@@ -1,8 +1,0 @@
-<script setup lang="ts">
-import { ref } from "vue";
-const qrType = ref("wifi");
-</script>
-
-<template>
-  <div>Minimal Page</div>
-</template>
