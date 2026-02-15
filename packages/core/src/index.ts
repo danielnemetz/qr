@@ -19,6 +19,7 @@ export {
 export * from './config';
 export * from './image';
 export * from './payloads';
+export * from './pdf';
 export * from './qr';
 export * from './types';
 export * from './wifi';

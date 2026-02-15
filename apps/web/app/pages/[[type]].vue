@@ -4,6 +4,7 @@ import {
   Eye,
   EyeOff,
   Download,
+  FileText,
   QrCode,
   Loader2,
   Shuffle,
@@ -381,6 +382,37 @@ function downloadImage() {
   a.href = previewUrl.value;
   a.download = downloadFilename();
   a.click();
+}
+
+const downloadingPdf = ref(false);
+
+async function downloadPdf() {
+  if (!blobRef.value) return;
+  downloadingPdf.value = true;
+  try {
+    // Convert the existing PNG blob to base64
+    const arrayBuffer = await blobRef.value.arrayBuffer();
+    const base64 = btoa(
+      new Uint8Array(arrayBuffer).reduce((s, b) => s + String.fromCharCode(b), ""),
+    );
+
+    const pdfBlob = await $fetch<Blob>("/api/generate-pdf", {
+      method: "POST",
+      body: { png: base64 },
+      responseType: "blob",
+    });
+
+    const url = URL.createObjectURL(pdfBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${generatedFilename.value || "qr"}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err: any) {
+    errorMessage.value = err?.data?.statusMessage || err?.message || "PDF generation failed";
+  } finally {
+    downloadingPdf.value = false;
+  }
 }
 
 function randomizeColors() {
@@ -857,10 +889,17 @@ watch(
               alt="QR code preview"
               class="w-full max-w-xs rounded-lg shadow-md"
             />
-            <Button variant="outline" @click="downloadImage">
-              <Download class="mr-2 h-4 w-4" />
-              Download PNG
-            </Button>
+            <div class="flex gap-2">
+              <Button variant="outline" @click="downloadImage">
+                <Download class="mr-2 h-4 w-4" />
+                PNG
+              </Button>
+              <Button variant="outline" :disabled="downloadingPdf" @click="downloadPdf">
+                <Loader2 v-if="downloadingPdf" class="mr-2 h-4 w-4 animate-spin" />
+                <FileText v-else class="mr-2 h-4 w-4" />
+                PDF
+              </Button>
+            </div>
           </template>
           <template v-else>
             <div class="flex flex-col items-center gap-3 text-muted-foreground">

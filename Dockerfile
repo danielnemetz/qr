@@ -51,7 +51,7 @@ COPY --from=build /app/apps/web/.output .output/
 
 # canvas & qr-code-styling-node are externalized in Nitro (rollupConfig.external)
 # and NOT bundled into .output – install them with their transitive deps
-RUN npm install --omit=dev canvas@3 qr-code-styling-node@1 && \
+RUN npm install --omit=dev canvas@3 pdfkit@0 qr-code-styling-node@1 && \
     # Remove build tools to shrink the image
     apk del python3 g++ make && \
     rm -rf /root/.npm /tmp/*

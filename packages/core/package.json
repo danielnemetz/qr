@@ -17,10 +17,12 @@
   },
   "dependencies": {
     "canvas": "^3.2.1",
+    "pdfkit": "^0.17.2",
     "qr-code-styling-node": "^1.5.0"
   },
   "devDependencies": {
     "@types/node": "^25.2.3",
+    "@types/pdfkit": "^0.17.5",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3"
   }

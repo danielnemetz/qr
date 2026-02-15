@@ -33,7 +33,7 @@ export default defineNuxtConfig({
       inline: [],
     },
     rollupConfig: {
-      external: ['canvas', 'qr-code-styling-node'],
+      external: ['canvas', 'pdfkit', 'qr-code-styling-node'],
     },
   },
 
