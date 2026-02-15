@@ -25,6 +25,22 @@ const qrMarginArr = computed({
 const emit = defineEmits<{
   randomize: []
 }>()
+
+const colorRefs: Record<string, Ref<string>> = {
+  colorBackground, colorDotsStart, colorDotsEnd, colorCorners, colorText,
+}
+
+const swatches = computed(() => [
+  { id: 'colorBg', key: 'colorBackground', labelKey: 'style.background', modelValue: colorBackground.value },
+  { id: 'colorDs', key: 'colorDotsStart', labelKey: 'style.dots1', modelValue: colorDotsStart.value },
+  { id: 'colorDe', key: 'colorDotsEnd', labelKey: 'style.dots2', modelValue: colorDotsEnd.value },
+  { id: 'colorCo', key: 'colorCorners', labelKey: 'style.corners', modelValue: colorCorners.value },
+  { id: 'colorTx', key: 'colorText', labelKey: 'style.text', modelValue: colorText.value },
+])
+
+function onSwatchUpdate(key: string, value: string) {
+  if (colorRefs[key]) colorRefs[key].value = value
+}
 </script>
 
 <template>
@@ -45,58 +61,7 @@ const emit = defineEmits<{
             </Tooltip>
           </TooltipProvider>
         </div>
-        <div class="grid grid-cols-5 gap-2">
-          <div class="space-y-1">
-            <label
-              for="colorBg"
-              class="block w-full aspect-square rounded-md border border-border overflow-hidden cursor-pointer"
-              :style="{ backgroundColor: colorBackground }"
-            >
-              <input id="colorBg" v-model="colorBackground" type="color" class="sr-only" />
-            </label>
-            <span class="text-[10px] text-muted-foreground text-center block">{{ t('style.background') }}</span>
-          </div>
-          <div class="space-y-1">
-            <label
-              for="colorDs"
-              class="block w-full aspect-square rounded-md border border-border overflow-hidden cursor-pointer"
-              :style="{ backgroundColor: colorDotsStart }"
-            >
-              <input id="colorDs" v-model="colorDotsStart" type="color" class="sr-only" />
-            </label>
-            <span class="text-[10px] text-muted-foreground text-center block">{{ t('style.dots1') }}</span>
-          </div>
-          <div class="space-y-1">
-            <label
-              for="colorDe"
-              class="block w-full aspect-square rounded-md border border-border overflow-hidden cursor-pointer"
-              :style="{ backgroundColor: colorDotsEnd }"
-            >
-              <input id="colorDe" v-model="colorDotsEnd" type="color" class="sr-only" />
-            </label>
-            <span class="text-[10px] text-muted-foreground text-center block">{{ t('style.dots2') }}</span>
-          </div>
-          <div class="space-y-1">
-            <label
-              for="colorCo"
-              class="block w-full aspect-square rounded-md border border-border overflow-hidden cursor-pointer"
-              :style="{ backgroundColor: colorCorners }"
-            >
-              <input id="colorCo" v-model="colorCorners" type="color" class="sr-only" />
-            </label>
-            <span class="text-[10px] text-muted-foreground text-center block">{{ t('style.corners') }}</span>
-          </div>
-          <div class="space-y-1">
-            <label
-              for="colorTx"
-              class="block w-full aspect-square rounded-md border border-border overflow-hidden cursor-pointer"
-              :style="{ backgroundColor: colorText }"
-            >
-              <input id="colorTx" v-model="colorText" type="color" class="sr-only" />
-            </label>
-            <span class="text-[10px] text-muted-foreground text-center block">{{ t('style.text') }}</span>
-          </div>
-        </div>
+        <QrColorSwatchGrid :swatches="swatches" @update="onSwatchUpdate" />
       </div>
       <div class="space-y-2">
         <Label for="dotsType">{{ t('style.dotStyle') }}</Label>

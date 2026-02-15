@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { QrCode, Loader2 } from 'lucide-vue-next'
 import type { QrType } from '@qr/core'
 import { QR_TYPES_ORDERED } from '~/utils/constants'
 
@@ -77,19 +76,7 @@ watch(
         <!-- Input Column -->
         <div class="lg:max-h-[min(800px,calc(100vh-100px))] flex flex-col border-b lg:border-b-0 lg:border-r border-border">
           <div class="p-5 lg:p-6 space-y-4 flex-1 overflow-y-auto min-h-0 custom-scrollbar">
-            <div class="space-y-2">
-              <Label for="qrType">{{ t('qrType') }}</Label>
-              <Select v-model="qrType">
-                <SelectTrigger id="qrType">
-                  <SelectValue :placeholder="t('chooseType')" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem v-for="tp in QR_TYPES_ORDERED" :key="tp" :value="tp">
-                    {{ t(`types.${tp}`) }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <QrTypeSelector v-model="qrType" />
 
             <QrInputWifi
               v-if="qrType === 'wifi'"
@@ -142,16 +129,11 @@ watch(
             <p v-if="gen.errorMessage.value" class="text-sm text-destructive">
               {{ gen.errorMessage.value }}
             </p>
-            <Button
-              class="w-full"
-              size="lg"
-              :disabled="!gen.canGenerate.value || gen.generating.value"
-              @click="gen.generate"
-            >
-              <Loader2 v-if="gen.generating.value" class="mr-2 h-4 w-4 animate-spin" />
-              <QrCode v-else class="mr-2 h-4 w-4" />
-              {{ gen.generating.value ? t('generating') : t('generateBtn') }}
-            </Button>
+            <QrGenerateButton
+              :generating="gen.generating.value"
+              :can-generate="gen.canGenerate.value"
+              @generate="gen.generate"
+            />
           </div>
         </div>
 
