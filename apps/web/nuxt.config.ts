@@ -7,6 +7,7 @@ export default defineNuxtConfig({
 
   colorMode: {
     classSuffix: '',
+    preference: 'system',
   },
 
   shadcn: {
