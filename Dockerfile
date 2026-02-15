@@ -42,21 +42,19 @@ RUN pnpm --filter @qr/core build && \
     pnpm --filter @qr/web build
 
 # ── Stage 4: Production ─────────────────────────────────────────
-FROM node:22-alpine AS production
-
-# Runtime-only native libraries (no dev headers/compilers)
-RUN apk add --no-cache \
-    cairo \
-    pango \
-    giflib \
-    libjpeg-turbo \
-    librsvg \
-    pixman
+FROM base AS production
 
 WORKDIR /app
 
 # Copy the self-contained Nitro output
 COPY --from=build /app/apps/web/.output .output/
+
+# canvas & qr-code-styling-node are externalized in Nitro (rollupConfig.external)
+# and NOT bundled into .output – install them with their transitive deps
+RUN npm install --omit=dev canvas@3 qr-code-styling-node@1 && \
+    # Remove build tools to shrink the image
+    apk del python3 g++ make && \
+    rm -rf /root/.npm /tmp/*
 
 ENV NODE_ENV=production
 ENV NUXT_HOST=0.0.0.0
@@ -64,4 +62,6 @@ ENV NUXT_PORT=3000
 
 EXPOSE 3000
 
+# Ensure externalized modules are found
+ENV NODE_PATH=/app/node_modules
 CMD ["node", ".output/server/index.mjs"]
